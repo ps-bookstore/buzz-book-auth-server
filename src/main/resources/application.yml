@@ -1,0 +1,10 @@
+spring:
+  application:
+    name: buzz-book-jwt-server
+
+server:
+  port: 8100
+
+jwt:
+  secret: f5aec30ed11e9cd92f23f391ddc24ae931e08ac1352487d178e0547e50bd17d1
+  refresh: 18fe93b955bf4861670b536214502d889288e3523f1ae02c6b28fae3b71f1bc3
