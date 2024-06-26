@@ -3,17 +3,9 @@ package store.buzzbook.authserver.jwt;
 import java.security.Key;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.Date;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import io.jsonwebtoken.Claims;
@@ -26,7 +18,6 @@ import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
 import store.buzzbook.authserver.dto.AuthRequest;
 import store.buzzbook.authserver.dto.JwtResponse;
-import store.buzzbook.authserver.exception.MissingAuthorityException;
 
 @Slf4j
 @Component
@@ -86,21 +77,6 @@ public class JwtTokenProvider {
 		}
 	}
 
-	/** 주어진 Access token 을 복호화하여 사용자의 인증 정보(Authentication)를 생성 */
-	public Authentication getAuthentication(String accessToken) {
-		Claims claims = parseClaims(accessToken);
-
-		if (claims.get("auth") == null) {
-			throw new MissingAuthorityException("권한 정보가 없는 토큰입니다.");
-		}
-
-		Collection<? extends GrantedAuthority> authorities = Arrays.stream(claims.get("auth").toString().split(","))
-			.map(SimpleGrantedAuthority::new).toList();
-
-		UserDetails principal = new User(claims.getSubject(), "", authorities);
-		return new UsernamePasswordAuthenticationToken(principal, "", authorities);
-	}
-
 	/** 토큰 정보를 검증하여 유효성 확인 */
 	public boolean validateToken(String token) {
 		try {
@@ -108,18 +84,16 @@ public class JwtTokenProvider {
 				.setSigningKey(tokenKey)
 				.build()
 				.parseClaimsJws(token);
-			log.info("end true");
 			return true;
 		} catch (SecurityException | MalformedJwtException e) {
-			log.info("잘못된 JWT Token 입니다.", e);
+			log.debug("잘못된 JWT Token 입니다.", e);
 		} catch (ExpiredJwtException e) {
-			log.info("만료된 JWT Token 입니다.", e);
+			log.debug("만료된 JWT Token 입니다.", e);
 		} catch (UnsupportedJwtException e) {
-			log.info("지원하지 않는 JWT Token 입니다.", e);
+			log.debug("지원하지 않는 JWT Token 입니다.", e);
 		} catch (IllegalArgumentException e) {
-			log.info("JWT Token 정보가 비어있습니다.", e);
+			log.debug("JWT Token 정보가 비어있습니다.", e);
 		}
-		log.info("end false");
 		return false;
 	}
 
@@ -132,7 +106,7 @@ public class JwtTokenProvider {
 				.parseClaimsJws(token);
 			return true;
 		} catch (Exception e) {
-			log.info("유효하지 않은 Refresh Token 입니다.", e);
+			log.debug("유효하지 않은 Refresh Token 입니다.", e);
 		}
 		return false;
 	}
