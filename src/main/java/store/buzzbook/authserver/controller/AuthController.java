@@ -16,10 +16,12 @@ import store.buzzbook.authserver.dto.JwtResponse;
 import store.buzzbook.authserver.jwt.JwtTokenProvider;
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/api/auth")
 public class AuthController {
 	private static final String BEARER_PREFIX = "Bearer ";
-	private static final String BEARER_FORMAT = String.format("%s%s", BEARER_PREFIX, "?");
+	private static final String TOKEN_FORMAT = "Bearer %s";
+	private static final String TOKEN_HEADER = "Authorization";
+	private static final String REFRESH_HEADER = "Refresh-Token";
 
 	private final JwtTokenProvider jwtTokenProvider;
 
@@ -28,35 +30,46 @@ public class AuthController {
 		this.jwtTokenProvider = jwtTokenProvider;
 	}
 
+	/** 토큰을 발급 */
 	@PostMapping("/token")
 	public ResponseEntity<Void> generateToken(@RequestBody AuthRequest authRequest) {
 		JwtResponse response = jwtTokenProvider.generateToken(authRequest);
 
 		HttpHeaders headers = new HttpHeaders();
-		headers.add("Authorization", String.format(BEARER_FORMAT, response.getAccessToken()));
-		headers.add("Refresh-Token", String.format(BEARER_FORMAT, response.getRefreshToken()));
+		headers.add(TOKEN_HEADER, String.format(TOKEN_FORMAT, response.getAccessToken()));
+		headers.add(REFRESH_HEADER, String.format(TOKEN_FORMAT, response.getRefreshToken()));
 
 		return ResponseEntity.ok().headers(headers).build();
 	}
 
+	/** role 을 반환해줌 */
 	@GetMapping("/role")
-	public ResponseEntity<String> getRole(@RequestHeader(value = "Authorization", required = false) String accessToken,
-		@RequestHeader(value = "Refresh-Token", required = false) String refreshToken) {
-		if (accessToken == null || !accessToken.startsWith(BEARER_PREFIX) || refreshToken == null
-			|| !refreshToken.startsWith(BEARER_PREFIX)) {
+	public ResponseEntity<String> getRole(
+		@RequestHeader(value = TOKEN_HEADER, required = false) String accessToken,
+		@RequestHeader(value = REFRESH_HEADER, required = false) String refreshToken) {
+
+		if (accessToken == null ||
+			!accessToken.startsWith(BEARER_PREFIX) ||
+			refreshToken == null ||
+			!refreshToken.startsWith(BEARER_PREFIX)) {
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("다시 로그인해주세요.");
 		}
 
 		accessToken = accessToken.substring(BEARER_PREFIX.length());
 		refreshToken = refreshToken.substring(BEARER_PREFIX.length());
 
+		if (!jwtTokenProvider.validateToken(accessToken) &&
+			!jwtTokenProvider.validateToken(refreshToken)) {
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("다시 로그인해주세요.");
+		}
+
 		String role;
 		if (!jwtTokenProvider.validateToken(accessToken)) { // access token 이 만료됐을 때
 			JwtResponse response = jwtTokenProvider.refreshAccessToken(refreshToken);
 			if (response != null) {
 				HttpHeaders headers = new HttpHeaders();
-				headers.add("Authorization", String.format(BEARER_FORMAT, response.getAccessToken()));
-				headers.add("Refresh-Token", String.format(BEARER_FORMAT, response.getRefreshToken()));
+				headers.add(TOKEN_HEADER, String.format(TOKEN_FORMAT, response.getAccessToken()));
+				headers.add(REFRESH_HEADER, String.format(TOKEN_FORMAT, response.getRefreshToken()));
 
 				role = jwtTokenProvider.getRoleFromToken(response.getAccessToken());
 				return ResponseEntity.ok().headers(headers).body(role);
@@ -69,4 +82,6 @@ public class AuthController {
 			return ResponseEntity.ok(role);
 		}
 	}
+
+	// private
 }

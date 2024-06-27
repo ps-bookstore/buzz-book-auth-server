@@ -1,6 +1,7 @@
 package store.buzzbook.authserver.jwt;
 
 import java.security.Key;
+import java.security.SignatureException;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Date;
@@ -93,6 +94,9 @@ public class JwtTokenProvider {
 			log.debug("지원하지 않는 JWT Token 입니다.", e);
 		} catch (IllegalArgumentException e) {
 			log.debug("JWT Token 정보가 비어있습니다.", e);
+		} catch (io.jsonwebtoken.security.SignatureException e) {
+			log.debug("JWT 서명이 일치하지 않습니다.", e);
+			throw new RuntimeException("JWT 서명이 일치하지 않습니다.");
 		}
 		return false;
 	}
@@ -105,8 +109,17 @@ public class JwtTokenProvider {
 				.build()
 				.parseClaimsJws(token);
 			return true;
-		} catch (Exception e) {
-			log.debug("유효하지 않은 Refresh Token 입니다.", e);
+		} catch (SecurityException | MalformedJwtException e) {
+			log.debug("잘못된 JWT Token 입니다.", e);
+		} catch (ExpiredJwtException e) {
+			log.debug("만료된 JWT Token 입니다.", e);
+		} catch (UnsupportedJwtException e) {
+			log.debug("지원하지 않는 JWT Token 입니다.", e);
+		} catch (IllegalArgumentException e) {
+			log.debug("JWT Token 정보가 비어있습니다.", e);
+		} catch (io.jsonwebtoken.security.SignatureException e) {
+			log.debug("JWT 서명이 일치하지 않습니다.", e);
+			throw new RuntimeException("JWT 서명이 일치하지 않습니다.");
 		}
 		return false;
 	}
