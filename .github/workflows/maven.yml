@@ -34,23 +34,25 @@ jobs:
           path: ~/.m2
           key: maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: maven
-
+          
       - name: Cache SonarQube packages
         uses: actions/cache@v1
         with:
-          path: ~/.sonar/cache # SonarQube 패키지 캐시 경로
-          key: sonar-${{ hashFiles('**/pom.xml') }} # 캐시 키 설정
-          restore-keys: sonar
-
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+          
+      - name: Cache Maven packages
+        uses: actions/cache@v1
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
       - name: Build and analyze
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-        run: mvn clean verify sonar:sonar \
-          -Dsonar.projectKey=buzz-book-auth-server \
-          -Dsonar.projectName='buzz-book-auth-server' \
-          -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
-          -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+        run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=buzz-book-auth-server -Dsonar.projectName='buzz-book-auth-server'
 
 
     # 선택사항: 전체 의존성 그래프를 GitHub에 업로드하여 Dependabot 알림의 품질을 향상시킵니다.
