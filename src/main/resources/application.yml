@@ -14,3 +14,40 @@ server:
 jwt:
   secret: f5aec30ed11e9cd92f23f391ddc24ae931e08ac1352487d178e0547e50bd17d1
   refresh: 18fe93b955bf4861670b536214502d889288e3523f1ae02c6b28fae3b71f1bc3
+
+management:
+  health:
+    status:
+      order: DOWN, UP
+  endpoint:
+    jolokia:
+      enabled: true
+    metrics:
+      enabled: true
+    pause:
+      enabled: true
+    resume:
+      enabled: true
+    restart:
+      enabled: true
+    shutdown:
+      enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  info:
+    env:
+      enabled: true
+
+eureka:
+  instance:
+    instance-id: auth-api
+    hostname: auth-api
+  client:
+    fetch-registry: true
+    register-with-eureka: true
+    service-url:
+      defaultZone: http://admin:1234@localhost:8761/eureka
+    instance:
+      prefer-ip-address: true
