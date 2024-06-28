@@ -43,7 +43,7 @@ management:
 eureka:
   instance:
     instance-id: auth-api
-    hostname: auth-api
+    hostname: eureka-server
   client:
     fetch-registry: true
     register-with-eureka: true
