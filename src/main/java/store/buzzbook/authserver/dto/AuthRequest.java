@@ -8,10 +8,9 @@ import lombok.Setter;
 @Setter
 @RequiredArgsConstructor
 public class AuthRequest {
-	private String username;
+	private String loginId;
 	private String role;
-	private String session;
-	private String token;
+	private Long userId;
+	private String accessToken;
 	private String refreshToken;
-
 }
