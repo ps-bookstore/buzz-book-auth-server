@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import store.buzzbook.authserver.dto.AuthRequest;
+import store.buzzbook.authserver.dto.AuthDTO;
 import store.buzzbook.authserver.dto.JwtResponse;
 import store.buzzbook.authserver.jwt.JwtTokenProvider;
 
@@ -38,8 +38,8 @@ public class AuthController {
 
 	/** 토큰을 발급 */
 	@PostMapping("/token")
-	public ResponseEntity<Void> generateToken(@RequestBody AuthRequest authRequest) {
-		JwtResponse response = jwtTokenProvider.generateToken(authRequest);
+	public ResponseEntity<Void> generateToken(@RequestBody AuthDTO authDTO) {
+		JwtResponse response = jwtTokenProvider.generateToken(authDTO);
 
 		HttpHeaders headers = new HttpHeaders();
 		headers.add(TOKEN_HEADER, String.format(TOKEN_FORMAT, response.getAccessToken()));

@@ -19,7 +19,7 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
-import store.buzzbook.authserver.dto.AuthRequest;
+import store.buzzbook.authserver.dto.AuthDTO;
 import store.buzzbook.authserver.dto.JwtResponse;
 import store.buzzbook.authserver.service.RedisService;
 
@@ -39,7 +39,7 @@ public class JwtTokenProvider {
 	}
 
 	/** 인증(Authentication) 객체를 기반으로 Access Token + Refresh Token 생성 */
-	public JwtResponse generateToken(AuthRequest authRequest) {
+	public JwtResponse generateToken(AuthDTO authDTO) {
 		// 현재 시간을 기준으로 30분 후와 24시간 후의 시간을 계산
 		ZonedDateTime now = ZonedDateTime.now(ZoneId.of("Asia/Seoul"));
 		Date issuedAt = Date.from(now.toInstant()); // 현재
@@ -68,9 +68,9 @@ public class JwtTokenProvider {
 		log.debug("Generated Refresh Token: {}", refreshToken);
 
 		// Redis에 사용자 데이터 저장
-		Long userId = authRequest.getUserId();
-		String role = authRequest.getRole();
-		String loginId = authRequest.getLoginId();
+		Long userId = authDTO.getUserId();
+		String role = authDTO.getRole();
+		String loginId = authDTO.getLoginId();
 		Map<String, Object> userData = new HashMap<>();
 		userData.put("loginId", loginId);
 		userData.put("role", role);
@@ -100,12 +100,12 @@ public class JwtTokenProvider {
 
 			log.debug("user 정보 확인 {}, {}, {}, {}", uuid, loginId, role, userId);
 
-			AuthRequest authRequest = new AuthRequest();
-			authRequest.setLoginId(loginId);
-			authRequest.setRole(role);
-			authRequest.setUserId(userId);
+			AuthDTO authDTO = new AuthDTO();
+			authDTO.setLoginId(loginId);
+			authDTO.setRole(role);
+			authDTO.setUserId(userId);
 
-			return generateToken(authRequest);
+			return generateToken(authDTO);
 		} else {
 			return null; // Refresh Token 이 유효하지 않으면 null 반환
 		}
