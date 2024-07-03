@@ -35,6 +35,7 @@ public class SecurityConfig {
 		//경로 별 인가 작업
 		http.authorizeHttpRequests(auth -> auth
 			.requestMatchers("/", "/api/auth/**", "/redis/**").permitAll()
+			.anyRequest().permitAll()
 		);
 
 		// 세션 설정 (세션이 아닌 jwt 토큰을 사용할거기 때문에 STATELESS 설정 필수)
