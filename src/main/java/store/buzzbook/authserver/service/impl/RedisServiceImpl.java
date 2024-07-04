@@ -1,6 +1,7 @@
 package store.buzzbook.authserver.service.impl;
 
 import jakarta.annotation.PostConstruct;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -13,6 +14,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 @Service
+@Slf4j
 public class RedisServiceImpl implements RedisService {
 	private final RedisTemplate<String, Object> redisTemplate;
 	private HashOperations<String, String, Object> hashOperations;
@@ -53,6 +55,11 @@ public class RedisServiceImpl implements RedisService {
 
 	@Override
 	public void removeUser(String uuid) {
-		redisTemplate.delete(uuid);
+		try {
+			redisTemplate.delete(uuid);
+		} catch (Exception e) {
+			log.error("Error removing user from Redis", e);
+		}
+
 	}
 }
