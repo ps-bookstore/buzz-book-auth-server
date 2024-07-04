@@ -1,8 +1,9 @@
 #!/bin/bash
 
 APP_NAME=auth-api
+INSTANCE_ID=auth-api
 DOCKER_REPO=heldenar
-VERSION=$GITHUB_SHA
+VERSION=latest
 NETWORK_NAME=api_network
 PORT=8100:8100
 
