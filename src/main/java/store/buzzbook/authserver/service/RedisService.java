@@ -8,4 +8,5 @@ public interface RedisService {
 	String getKey(String key);
 	void saveUser(String userId, Map<String, Object> data);
 	Map<String, Object> getUser(String userId);
+	void removeUser(String uuid);
 }

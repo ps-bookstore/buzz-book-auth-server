@@ -7,7 +7,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @RequiredArgsConstructor
-public class AuthRequest {
+public class AuthDTO {
 	private String loginId;
 	private String role;
 	private Long userId;

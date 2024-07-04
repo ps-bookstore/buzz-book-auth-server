@@ -19,7 +19,7 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
-import store.buzzbook.authserver.dto.AuthRequest;
+import store.buzzbook.authserver.dto.AuthDTO;
 import store.buzzbook.authserver.dto.JwtResponse;
 import store.buzzbook.authserver.service.RedisService;
 
@@ -39,12 +39,11 @@ public class JwtTokenProvider {
 	}
 
 	/** 인증(Authentication) 객체를 기반으로 Access Token + Refresh Token 생성 */
-	public JwtResponse generateToken(AuthRequest authRequest) {
+	public JwtResponse generateToken(AuthDTO authDTO) {
 		// 현재 시간을 기준으로 30분 후와 24시간 후의 시간을 계산
 		ZonedDateTime now = ZonedDateTime.now(ZoneId.of("Asia/Seoul"));
 		Date issuedAt = Date.from(now.toInstant()); // 현재
-		// todo 현재 access token 이 1분으로 되어있지만 refresh token 테스트 후 30분으로 변경예정
-		Date accessTokenExpiresIn = Date.from(now.plusMinutes(1).toInstant()); // 30분
+		Date accessTokenExpiresIn = Date.from(now.plusMinutes(30).toInstant()); // 30분
 		Date refreshTokenExpiresIn = Date.from(now.plusDays(1).toInstant()); // 1일
 
 		UUID uuid = UUID.randomUUID();
@@ -60,6 +59,8 @@ public class JwtTokenProvider {
 		String refreshToken = Jwts.builder()
 				.setIssuedAt(issuedAt)
 				.setExpiration(refreshTokenExpiresIn) // 24시간(1일)
+				.claim("sub", "refresh_token")
+				.claim("user_id", uuid.toString())
 				.signWith(refreshTokenKey, SignatureAlgorithm.HS256)
 				.compact();
 
@@ -68,9 +69,9 @@ public class JwtTokenProvider {
 		log.debug("Generated Refresh Token: {}", refreshToken);
 
 		// Redis에 사용자 데이터 저장
-		Long userId = authRequest.getUserId();
-		String role = authRequest.getRole();
-		String loginId = authRequest.getLoginId();
+		Long userId = authDTO.getUserId();
+		String role = authDTO.getRole();
+		String loginId = authDTO.getLoginId();
 		Map<String, Object> userData = new HashMap<>();
 		userData.put("loginId", loginId);
 		userData.put("role", role);
@@ -84,28 +85,31 @@ public class JwtTokenProvider {
 				.build();
 	}
 
-	/** Access Token 갱신 */
-	public JwtResponse refreshAccessToken(String accessToken, String refreshToken) {
+	/** Token 갱신 */
+	public JwtResponse refreshAccessToken(String refreshToken) {
 		// refresh token 이 만료되지 않았을 때만 access token 갱신 가능
 		log.debug("Validating Refresh Token: {}", refreshToken);
 		if (validateRefreshToken(refreshToken)) {
-			Claims claims = parseClaims(accessToken, tokenKey);
+			Claims claims = parseClaims(refreshToken, tokenKey);
 			String uuid = claims.get("user_id").toString();
 
 			// Redis에서 사용자 데이터 가져오기
 			Map<String, Object> userData = redisService.getUser(uuid);
+			// 재발급 하기 때문에 이전 정보 삭제 return generateToken(authDTO);  부분에서 레디스 저장 다시 됨
+			redisService.removeUser(uuid);
+
 			String loginId = (String) userData.get("loginId");
 			String role = (String) userData.get("role");
 			Long userId = ((Number) userData.get("userId")).longValue();
 
 			log.debug("user 정보 확인 {}, {}, {}, {}", uuid, loginId, role, userId);
 
-			AuthRequest authRequest = new AuthRequest();
-			authRequest.setLoginId(loginId);
-			authRequest.setRole(role);
-			authRequest.setUserId(userId);
+			AuthDTO authDTO = new AuthDTO();
+			authDTO.setLoginId(loginId);
+			authDTO.setRole(role);
+			authDTO.setUserId(userId);
 
-			return generateToken(authRequest);
+			return generateToken(authDTO);
 		} else {
 			return null; // Refresh Token 이 유효하지 않으면 null 반환
 		}
@@ -143,7 +147,7 @@ public class JwtTokenProvider {
 		return false;
 	}
 
-	/** 주어진 Access Token 을 복호화 하고, 만료된 토큰인 경우에도 Claims 반환 */
+	/** 주어진 Token 을 복호화 하고, 만료된 토큰인 경우에도 Claims 반환 */
 	private Claims parseClaims(String token, Key key) {
 		try {
 			return Jwts.parserBuilder()
@@ -156,10 +160,27 @@ public class JwtTokenProvider {
 		}
 	}
 
-	/** 주어진 Access Token 에서 역할 정보를 추출 */
-	public Map<String, Object> getUUIDFromToken(String token) {
+	/** 주어진 access Token 에서 유저정보를 추출 */
+	public Map<String, Object> getUserInfoFromToken(String token) {
 		Claims claims = parseClaims(token, tokenKey);
 		String uuid = claims.get("user_id", String.class);
+		return getUserInfoFromUUID(uuid);
+	}
+
+	/** access token 에서 uuid만 꺼내기 */
+	public String getUUIDFromAccessToken(String token) {
+		Claims claims = parseClaims(token, tokenKey);
+		return claims.get("user_id", String.class);
+	}
+
+	/** refresh token 에서 uuid 만 꺼내기 access token 재발급 용 */
+	public String getUUIDFromRefreshToken(String refreshToken) {
+		Claims claims = parseClaims(refreshToken, refreshTokenKey);
+        return claims.get("user_id", String.class);
+	}
+
+	/** uuid 로 redis 에서 유저정보 가져오기 */
+	public Map<String, Object> getUserInfoFromUUID(String uuid) {
 		return redisService.getUser(uuid);
 	}
 }

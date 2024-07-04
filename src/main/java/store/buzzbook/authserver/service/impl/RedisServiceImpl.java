@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import store.buzzbook.authserver.service.RedisService;
 
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class RedisServiceImpl implements RedisService {
@@ -39,10 +40,19 @@ public class RedisServiceImpl implements RedisService {
 	@Override
 	public void saveUser(String userId, Map<String, Object> data) {
 		hashOperations.putAll(userId, data);
+
+		long userTTL = 7;
+
+		redisTemplate.expire(userId, userTTL, TimeUnit.DAYS);
 	}
 
 	@Override
 	public Map<String, Object> getUser(String userId) {
 		return hashOperations.entries(userId);
+	}
+
+	@Override
+	public void removeUser(String uuid) {
+		redisTemplate.delete(uuid);
 	}
 }
