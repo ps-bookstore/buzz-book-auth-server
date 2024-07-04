@@ -82,6 +82,8 @@ jobs:
     needs: build-and-push
 
     steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
     - name: Set up SSH
       uses: webfactory/ssh-agent@v0.5.3
       with:
@@ -89,4 +91,4 @@ jobs:
     - name: Deploy to Server
       env:
         GITHUB_SHA: ${{ github.sha }}
-      run: ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} 'bash -s' < /deploy-script.sh
+      run: ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} 'bash -s' < deploy-script.sh
