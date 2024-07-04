@@ -1,12 +1,6 @@
 spring:
   application:
     name: auth-api
-  data:
-    redis:
-      host: 133.186.241.167
-      port: 6379
-      password: '*N2vya7H@muDTwdNMR!'
-      database: 8
 
 
 server:
@@ -52,3 +46,12 @@ eureka:
     register-with-eureka: true
     service-url:
       defaultZone: http://admin:1234@eureka-server:8761/eureka
+
+nhncloud:
+  keymanager:
+    appkey: 2SxwmBzUfnqJaA2A
+    redis:
+      database: d7051ec1c8bd4322b1617c9d4a7a4620
+      host: d105545a8b904e9ba27eab53d462c3a7
+      port: 3c38f3964cdd4c0084bd21426cd6b93f
+      password: abf22e4f003c42ae85c8d7e1ac668500

@@ -50,3 +50,12 @@ eureka:
     register-with-eureka: true
     service-url:
       defaultZone: http://admin:1234@localhost:8761/eureka
+
+nhncloud:
+  keymanager:
+    appkey: 2SxwmBzUfnqJaA2A
+    redis:
+      database: 8af86c225eb84768a87fa1d6b459e492
+      host: d105545a8b904e9ba27eab53d462c3a7
+      port: 3c38f3964cdd4c0084bd21426cd6b93f
+      password: abf22e4f003c42ae85c8d7e1ac668500
