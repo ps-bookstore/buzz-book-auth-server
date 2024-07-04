@@ -1,15 +1,16 @@
 #!/bin/bash
 
 APP_NAME=auth-api
-INSTANCE_ID=auth-api
 DOCKER_REPO=heldenar
-VERSION=$1
+VERSION=${GITHUB_SHA::7}
+IMAGE_NAME=$DOCKER_REPO/$APP_NAME:$VERSION
 NETWORK_NAME=api_network
 PORT=8100:8100
 
 
 # 새로운 컨테이너 실행
-docker run -d --name ${APP_NAME}-${VERSION} --network ${NETWORK_NAME} -p ${PORT} ${DOCKER_REPO}/${APP_NAME}:${VERSION}
+docker pull $IMAGE_NAME
+docker run -d --name ${APP_NAME}-${VERSION} --network ${NETWORK_NAME} -p ${PORT} $IMAGE_NAME
 
 # 새로운 컨테이너의 상태 확인
 NEW_CONTAINER_STATUS=$(docker inspect -f '{{.State.Status}}' ${APP_NAME}-${VERSION})
