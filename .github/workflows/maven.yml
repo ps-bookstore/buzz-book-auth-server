@@ -89,4 +89,4 @@ jobs:
     - name: Deploy to Server
       env:
         GITHUB_SHA: ${{ github.sha }}
-      run: ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} 'bash -s' < .github/script/deploy-script.sh
+      run: ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} 'bash -s' < ./.github/script/deploy-script.sh
