@@ -3,7 +3,7 @@
 APP_NAME=auth-api
 INSTANCE_ID=auth-api
 DOCKER_REPO=heldenar
-VERSION=latest
+VERSION=$GITHUB_SHA
 NETWORK_NAME=api_network
 PORT=8100:8100
 
