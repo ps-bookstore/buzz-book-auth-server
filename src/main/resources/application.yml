@@ -1,6 +1,12 @@
 spring:
   application:
     name: auth-api
+  data:
+    redis:
+      host: 133.186.241.167
+      port: 6379
+      password: '*N2vya7H@muDTwdNMR!'
+      database: 7
 
 server:
   port: 8100
