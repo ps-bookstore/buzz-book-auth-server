@@ -92,6 +92,4 @@ jobs:
             docker pull heldenar/auth-api:latest
             chmod 777 /home/nhnacademy/script/deploy-script.sh
             /home/nhnacademy/script/deploy-script.sh
-            docker stop auth-api || true
-            docker rm auth-api || true
             docker run -d --name core_api --network api_network  -p 8090:8090 heldenar/auth-api:latest
