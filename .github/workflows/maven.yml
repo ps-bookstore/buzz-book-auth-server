@@ -91,4 +91,4 @@ jobs:
             docker pull heldenar/auth-api:latest
             docker stop auth-api || true
             docker rm auth-api || true
-            docker run -d --name auth-api --network api_network -p 8100:8100 heldenar/auth-api:latest
+            docker run -d --name auth-api --network api_network -e SPRING_PROFILES_ACTIVE=prod -p 8100:8100 heldenar/auth-api:latest 
