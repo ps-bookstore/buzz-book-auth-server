@@ -3,7 +3,6 @@ package store.buzzbook.authserver.config;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
@@ -17,8 +16,7 @@ import store.buzzbook.authserver.dto.SecretResponse;
 
 @Configuration
 @EnableRedisRepositories
-@Profile("prod")
-public class RedisProdConfig {
+public class RedisConfig {
 
 	@Value("${nhncloud.keymanager.appkey}")
 	private String appKey;
