@@ -94,7 +94,7 @@ public class JwtTokenProvider {
         // refresh token 이 만료되지 않았을 때만 access token 갱신 가능
         log.debug("Validating Refresh Token: {}", refreshToken);
         if (validateRefreshToken(refreshToken)) {
-            Claims claims = parseClaims(refreshToken, tokenKey);
+            Claims claims = parseClaims(refreshToken, refreshTokenKey);
             String uuid = claims.get("user_id").toString();
 
             // Redis에서 사용자 데이터 가져오기
@@ -104,7 +104,7 @@ public class JwtTokenProvider {
 
             String loginId = (String) userData.get("loginId");
             String role = (String) userData.get("role");
-            Long userId = ((Number) userData.get("userId")).longValue();
+            Long userId = ((Integer) userData.get("userId")).longValue();
 
             log.debug("user 정보 확인 {}, {}, {}, {}", uuid, loginId, role, userId);
 
