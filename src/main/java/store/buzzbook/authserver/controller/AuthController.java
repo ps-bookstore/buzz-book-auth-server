@@ -7,9 +7,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import store.buzzbook.authserver.dto.AuthDTO;
 import store.buzzbook.authserver.dto.JwtResponse;
@@ -115,6 +117,23 @@ public class AuthController {
             log.debug("error {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(result);
         }
+    }
+
+
+    @GetMapping("/dormant")
+    ResponseEntity<String> getDormantToken(@RequestParam String loginId){
+
+
+    }
+
+    @GetMapping("/activate")
+    ResponseEntity<Void> existDormantToken(@RequestParam String token){
+
+    }
+
+    @PutMapping("/activate")
+    ResponseEntity<String> checkDormantToken(@RequestParam String token,@RequestParam String code){
+
     }
 
     private boolean isTokenPresentAndValid(String token) {
