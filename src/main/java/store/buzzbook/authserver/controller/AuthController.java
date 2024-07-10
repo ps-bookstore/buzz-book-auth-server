@@ -118,23 +118,7 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(result);
         }
     }
-
-
-    @GetMapping("/dormant")
-    ResponseEntity<String> getDormantToken(@RequestParam String loginId){
-
-
-    }
-
-    @GetMapping("/activate")
-    ResponseEntity<Void> existDormantToken(@RequestParam String token){
-
-    }
-
-    @PutMapping("/activate")
-    ResponseEntity<String> checkDormantToken(@RequestParam String token,@RequestParam String code){
-
-    }
+    
 
     private boolean isTokenPresentAndValid(String token) {
         return token == null || !token.startsWith(BEARER_PREFIX);
