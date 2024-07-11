@@ -37,7 +37,7 @@ management:
 
 eureka:
   instance:
-    instance-id: core-api
+    instance-id: auth-api
     hostname: eureka-server
     prefer-ip-address: true
   client:

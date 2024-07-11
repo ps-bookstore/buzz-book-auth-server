@@ -118,7 +118,27 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(result);
         }
     }
-    
+    @GetMapping("/dormant")
+    ResponseEntity<String> getDormantToken(@RequestParam String loginId){
+        String token = redisService.createDormantToken(loginId);
+
+        return ResponseEntity.ok(token);
+    }
+
+    @GetMapping("/activate")
+    ResponseEntity<Void> existDormantToken(@RequestParam String token){
+        if(redisService.isDormantToken(token)){
+            return ResponseEntity.ok().build();
+        }else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+    }
+
+    @PutMapping("/activate")
+    ResponseEntity<String> checkDormantToken(@RequestParam String token,@RequestParam String code){
+        String loginId = redisService.checkDormantToken(token, code);
+        return ResponseEntity.ok().body(loginId);
+    }
 
     private boolean isTokenPresentAndValid(String token) {
         return token == null || !token.startsWith(BEARER_PREFIX);
