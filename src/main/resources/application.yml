@@ -50,3 +50,16 @@ eureka:
     register-with-eureka: true
     service-url:
       defaultZone: http://admin:1234@eureka-server:8761/eureka
+
+logncrash:
+  config:
+    file-path: logs
+    file-name: log
+  app-key: Xyx7DoyszcG66ULx
+  url: https://api-logncrash.cloud.toast.com
+  version: 1.0.0
+  host: aa-auth-api
+  log:
+    version: v2
+    source: aa
+    type: aa
