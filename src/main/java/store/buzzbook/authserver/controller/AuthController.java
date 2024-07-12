@@ -57,7 +57,7 @@ public class AuthController {
             @RequestHeader(value = REFRESH_HEADER, required = false) String refreshToken) {
 
         if (accessToken == null && refreshToken == null) {
-            log.warn("토큰 정보가 없습니다.");
+            log.debug("토큰 정보가 없습니다.");
             return ResponseEntity.badRequest().build();
         }
 

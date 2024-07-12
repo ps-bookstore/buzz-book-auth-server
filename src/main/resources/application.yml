@@ -59,6 +59,7 @@ logncrash:
   url: https://api-logncrash.cloud.toast.com
   version: 1.0.0
   host: aa-auth-api
+  platform: aa-auth-api
   log:
     version: v2
     source: aa
