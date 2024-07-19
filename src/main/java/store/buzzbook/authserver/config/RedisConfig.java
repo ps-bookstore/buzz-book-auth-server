@@ -20,6 +20,8 @@ import java.util.Objects;
 @EnableRedisRepositories
 public class RedisConfig {
 
+    private static final String KEY_MANAGER_URL_PATTERN = "https://api-keymanager.nhncloudservice.com/keymanager/v1.0/appkey/%s/secrets/%s";
+
     @Value("${nhncloud.keymanager.appkey}")
     private String appKey;
 
@@ -39,41 +41,38 @@ public class RedisConfig {
     public RedisConnectionFactory redisConnectionFactory() {
         RestTemplate restTemplate = new RestTemplate();
 
-        String keyManagerUrl = "https://api-keymanager.nhncloudservice.com/keymanager/v1.0/appkey/%s/secrets/%s";
-
-        SecretResponse database = restTemplate.getForObject(
-                String.format(keyManagerUrl, appKey, redisDatabase), SecretResponse.class);
-
-        SecretResponse host = restTemplate.getForObject(
-                String.format(keyManagerUrl, appKey, redisHost), SecretResponse.class);
-
-        SecretResponse port = restTemplate.getForObject(
-                String.format(keyManagerUrl, appKey, redisPort), SecretResponse.class);
-
-        SecretResponse password = restTemplate.getForObject(
-                String.format(keyManagerUrl, appKey, redisPassword), SecretResponse.class);
-
+        String databaseSecret = fetchSecret(restTemplate, redisDatabase);
+        String hostSecret = fetchSecret(restTemplate, redisHost);
+        String portSecret = fetchSecret(restTemplate, redisPort);
+        String passwordSecret = fetchSecret(restTemplate, redisPassword);
 
         RedisStandaloneConfiguration redisStandaloneConfiguration = new RedisStandaloneConfiguration();
-        redisStandaloneConfiguration.setHostName(Objects.requireNonNull(host).getBody().getSecret());
-        redisStandaloneConfiguration.setPort(Integer.parseInt(Objects.requireNonNull(port).getBody().getSecret()));
-        redisStandaloneConfiguration.setPassword(Objects.requireNonNull(password).getBody().getSecret());
-        redisStandaloneConfiguration.setDatabase(Integer.parseInt(Objects.requireNonNull(database).getBody().getSecret()));
+        redisStandaloneConfiguration.setHostName(hostSecret);
+        redisStandaloneConfiguration.setPort(Integer.parseInt(portSecret));
+        redisStandaloneConfiguration.setPassword(passwordSecret);
+        redisStandaloneConfiguration.setDatabase(Integer.parseInt(databaseSecret));
+
         return new LettuceConnectionFactory(redisStandaloneConfiguration);
+    }
+
+    private String fetchSecret(RestTemplate restTemplate, String secretKey) {
+        SecretResponse response = restTemplate.getForObject(
+                String.format(KEY_MANAGER_URL_PATTERN, appKey, secretKey), SecretResponse.class);
+        return Objects.requireNonNull(response).getBody().getSecret();
     }
 
     @Bean
     public RedisTemplate<String, Object> redisTemplate() {
         RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
         redisTemplate.setConnectionFactory(redisConnectionFactory());
-
-        redisTemplate.setHashKeySerializer(new StringRedisSerializer());
-        redisTemplate.setHashValueSerializer(new GenericJackson2JsonRedisSerializer());
-
-        redisTemplate.setKeySerializer(new StringRedisSerializer());
-        redisTemplate.setValueSerializer(new StringRedisSerializer());
-
+        setSerializers(redisTemplate);
         return redisTemplate;
     }
 
+    private void setSerializers(RedisTemplate<String, Object> redisTemplate) {
+        redisTemplate.setHashKeySerializer(new StringRedisSerializer());
+        redisTemplate.setHashValueSerializer(new GenericJackson2JsonRedisSerializer());
+        redisTemplate.setKeySerializer(new StringRedisSerializer());
+        redisTemplate.setValueSerializer(new StringRedisSerializer());
+    }
 }
