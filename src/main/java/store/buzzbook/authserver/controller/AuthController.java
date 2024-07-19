@@ -92,7 +92,7 @@ public class AuthController {
 
             if (isTokenPresentAndValid(accessToken)) {
                 JwtResponse response = jwtTokenProvider.refreshAccessToken(refreshToken);
-                if(response != null) {
+                if (response != null) {
                     HttpHeaders headers = new HttpHeaders();
                     headers.add(TOKEN_HEADER, String.format(TOKEN_FORMAT, response.getAccessToken()));
                     headers.add(REFRESH_HEADER, String.format(TOKEN_FORMAT, response.getRefreshToken()));
@@ -118,24 +118,25 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(result);
         }
     }
+
     @GetMapping("/dormant")
-    ResponseEntity<String> getDormantToken(@RequestParam String loginId){
+    ResponseEntity<String> getDormantToken(@RequestParam String loginId) {
         String token = redisService.createDormantToken(loginId);
 
         return ResponseEntity.ok(token);
     }
 
     @GetMapping("/activate")
-    ResponseEntity<Void> existDormantToken(@RequestParam String token){
-        if(redisService.isDormantToken(token)){
+    ResponseEntity<Void> existDormantToken(@RequestParam String token) {
+        if (redisService.isDormantToken(token)) {
             return ResponseEntity.ok().build();
-        }else {
+        } else {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
     }
 
     @PutMapping("/activate")
-    ResponseEntity<String> checkDormantToken(@RequestParam String token,@RequestParam String code){
+    ResponseEntity<String> checkDormantToken(@RequestParam String token, @RequestParam String code) {
         String loginId = redisService.checkDormantToken(token, code);
         return ResponseEntity.ok().body(loginId);
     }
