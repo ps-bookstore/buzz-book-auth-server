@@ -3,7 +3,6 @@ package store.buzzbook.authserver.service.impl;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
@@ -65,7 +64,7 @@ public class RedisServiceImpl implements RedisService {
 		try {
 			redisTemplate.delete(uuid);
 		} catch (Exception e) {
-			log.error("Error removing user from Redis", e);
+			log.error("레디스에서 유저 정보 삭제 실패", e);
 		}
 
 	}
