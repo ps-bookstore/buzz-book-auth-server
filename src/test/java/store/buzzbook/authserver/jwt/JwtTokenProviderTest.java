@@ -12,6 +12,7 @@ import java.security.Key;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -28,7 +29,7 @@ import store.buzzbook.authserver.dto.JwtResponse;
 import store.buzzbook.authserver.service.RedisService;
 
 @ExtendWith(MockitoExtension.class)
-public class JwtTokenProviderTest {
+class JwtTokenProviderTest {
 
     @Mock
     private RedisService redisService;
@@ -39,7 +40,7 @@ public class JwtTokenProviderTest {
     private String refreshTokenKey;
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         tokenKey = "sampleTokenKey12345678901234567890123456789012";
         refreshTokenKey = "sampleRefreshTokenKey12345678901234567890123456789012";
         jwtTokenProvider = new JwtTokenProvider(tokenKey, refreshTokenKey, redisService);
@@ -51,7 +52,7 @@ public class JwtTokenProviderTest {
     }
 
     @Test
-    public void generateTokenTest() {
+    void generateTokenTest() {
         doNothing().when(redisService).saveUser(anyString(), any(Map.class));
 
         JwtResponse jwtResponse = jwtTokenProvider.generateToken(authDTO);
@@ -62,7 +63,7 @@ public class JwtTokenProviderTest {
     }
 
     @Test
-    public void validateTokenTest() {
+    void validateTokenTest() {
         JwtResponse jwtResponse = jwtTokenProvider.generateToken(authDTO);
 
         boolean isValid = jwtTokenProvider.validateToken(jwtResponse.getAccessToken());
@@ -70,7 +71,7 @@ public class JwtTokenProviderTest {
     }
 
     @Test
-    public void validateRefreshTokenTest() {
+    void validateRefreshTokenTest() {
         JwtResponse jwtResponse = jwtTokenProvider.generateToken(authDTO);
 
         boolean isValid = jwtTokenProvider.validateRefreshToken(jwtResponse.getRefreshToken());
@@ -78,7 +79,7 @@ public class JwtTokenProviderTest {
     }
 
     @Test
-    public void refreshAccessTokenTest() {
+    void refreshAccessTokenTest() {
         JwtResponse jwtResponse = jwtTokenProvider.generateToken(authDTO);
 
         Map<String, Object> userData = new HashMap<>();
@@ -99,7 +100,7 @@ public class JwtTokenProviderTest {
     }
 
     @Test
-    public void refreshAccessTokenWithInvalidTokenTest() {
+    void refreshAccessTokenWithInvalidTokenTest() {
         String invalidRefreshToken = "invalidRefreshToken";
 
         JwtResponse newJwtResponse = jwtTokenProvider.refreshAccessToken(invalidRefreshToken);
@@ -108,7 +109,7 @@ public class JwtTokenProviderTest {
     }
 
     @Test
-    public void getUserInfoFromTokenTest() {
+    void getUserInfoFromTokenTest() {
         JwtResponse jwtResponse = jwtTokenProvider.generateToken(authDTO);
 
         Map<String, Object> userData = new HashMap<>();
@@ -120,13 +121,13 @@ public class JwtTokenProviderTest {
         Map<String, Object> userInfo = jwtTokenProvider.getUserInfoFromToken(jwtResponse.getAccessToken());
 
         assertThat(userInfo).isNotNull();
-        assertThat(userInfo.get("loginId")).isEqualTo(authDTO.getLoginId());
-        assertThat(userInfo.get("role")).isEqualTo(authDTO.getRole());
-        assertThat(userInfo.get("userId")).isEqualTo(authDTO.getUserId());
+        assertThat(Optional.ofNullable(userInfo.get("loginId")).orElse("")).isEqualTo(authDTO.getLoginId());
+        assertThat(Optional.ofNullable(userInfo.get("role")).orElse("")).isEqualTo(authDTO.getRole());
+        assertThat(Optional.ofNullable(userInfo.get("userId")).orElse("")).isEqualTo(authDTO.getUserId());
     }
 
     @Test
-    public void getUUIDFromAccessTokenTest() {
+    void getUUIDFromAccessTokenTest() {
         JwtResponse jwtResponse = jwtTokenProvider.generateToken(authDTO);
 
         String uuid = jwtTokenProvider.getUUIDFromAccessToken(jwtResponse.getAccessToken());
@@ -135,7 +136,7 @@ public class JwtTokenProviderTest {
     }
 
     @Test
-    public void getUUIDFromRefreshTokenTest() {
+    void getUUIDFromRefreshTokenTest() {
         JwtResponse jwtResponse = jwtTokenProvider.generateToken(authDTO);
 
         String uuid = jwtTokenProvider.getUUIDFromRefreshToken(jwtResponse.getRefreshToken());
@@ -144,7 +145,7 @@ public class JwtTokenProviderTest {
     }
 
     @Test
-    public void getUserInfoFromUUIDTest() {
+    void getUserInfoFromUUIDTest() {
         JwtResponse jwtResponse = jwtTokenProvider.generateToken(authDTO);
 
         String uuid = jwtTokenProvider.getUUIDFromAccessToken(jwtResponse.getAccessToken());
@@ -158,13 +159,14 @@ public class JwtTokenProviderTest {
         Map<String, Object> userInfo = jwtTokenProvider.getUserInfoFromUUID(uuid);
 
         assertThat(userInfo).isNotNull();
-        assertThat(userInfo.get("loginId")).isEqualTo(authDTO.getLoginId());
-        assertThat(userInfo.get("role")).isEqualTo(authDTO.getRole());
-        assertThat(userInfo.get("userId")).isEqualTo(authDTO.getUserId());
+        assertThat(Optional.ofNullable(userInfo.get("loginId")).orElse("")).isEqualTo(authDTO.getLoginId());
+        assertThat(Optional.ofNullable(userInfo.get("role")).orElse("")).isEqualTo(authDTO.getRole());
+        assertThat(Optional.ofNullable(userInfo.get("userId")).orElse("")).isEqualTo(authDTO.getUserId());
+
     }
 
     @Test
-    public void validateTokenWithInvalidTokenTest() {
+    void validateTokenWithInvalidTokenTest() {
         String invalidToken = "invalidToken";
 
         boolean isValid = jwtTokenProvider.validateToken(invalidToken);
@@ -172,7 +174,7 @@ public class JwtTokenProviderTest {
     }
 
     @Test
-    public void validateTokenWithExpiredTokenTest() {
+    void validateTokenWithExpiredTokenTest() {
         Key key = Keys.hmacShaKeyFor(tokenKey.getBytes());
         String expiredToken = Jwts.builder()
                 .setSubject("testUser")
@@ -185,7 +187,7 @@ public class JwtTokenProviderTest {
     }
 
     @Test
-    public void validateTokenWithUnsupportedTokenTest() {
+    void validateTokenWithUnsupportedTokenTest() {
         Key unsupportedKey = Keys.secretKeyFor(SignatureAlgorithm.HS384);
         String unsupportedToken = Jwts.builder()
                 .setSubject("testUser")
@@ -197,13 +199,13 @@ public class JwtTokenProviderTest {
     }
 
     @Test
-    public void validateTokenWithEmptyTokenTest() {
+    void validateTokenWithEmptyTokenTest() {
         boolean isValid = jwtTokenProvider.validateToken("");
         assertThat(isValid).isFalse();
     }
 
     @Test
-    public void validateTokenWithInvalidSignatureTest() {
+    void validateTokenWithInvalidSignatureTest() {
         Key invalidKey = Keys.secretKeyFor(SignatureAlgorithm.HS256);
         String tokenWithInvalidSignature = Jwts.builder()
                 .setSubject("testUser")
@@ -216,7 +218,7 @@ public class JwtTokenProviderTest {
     }
 
     @Test
-    public void parseClaimsWithExpiredTokenTest() throws Exception {
+    void parseClaimsWithExpiredTokenTest() throws Exception {
         Key key = Keys.hmacShaKeyFor(tokenKey.getBytes());
         String expiredToken = Jwts.builder()
                 .setSubject("testUser")
