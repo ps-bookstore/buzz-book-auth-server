@@ -30,6 +30,8 @@ public class JwtTokenProvider {
     private final Key refreshTokenKey;
     private final RedisService redisService;
 
+    private static final String USERID = "user_id";
+
     public JwtTokenProvider(@Value("${jwt.secret}") String tokenKey,
                             @Value("${jwt.refresh}") String refreshTokenKey,
                             RedisService redisService) {
@@ -54,7 +56,7 @@ public class JwtTokenProvider {
                 .setIssuedAt(issuedAt) // 발급시간
                 .setExpiration(accessTokenExpiresIn) // 유효기간
                 .claim("sub", "access_token")
-                .claim("user_id", uuid.toString())
+                .claim(USERID, uuid.toString())
                 .signWith(tokenKey, SignatureAlgorithm.HS256)
                 .compact();
 
@@ -62,7 +64,7 @@ public class JwtTokenProvider {
                 .setIssuedAt(issuedAt)
                 .setExpiration(refreshTokenExpiresIn) // 24시간(1일)
                 .claim("sub", "refresh_token")
-                .claim("user_id", uuid.toString())
+                .claim(USERID, uuid.toString())
                 .signWith(refreshTokenKey, SignatureAlgorithm.HS256)
                 .compact();
 
@@ -77,7 +79,7 @@ public class JwtTokenProvider {
         Map<String, Object> userData = new HashMap<>();
         userData.put("loginId", loginId);
         userData.put("role", role);
-        userData.put("userId", userId);
+        userData.put(USERID, userId);
         redisService.saveUser(uuid.toString(), userData);
 
         return JwtResponse.builder()
@@ -95,7 +97,7 @@ public class JwtTokenProvider {
         log.debug("Validating Refresh Token: {}", refreshToken);
         if (validateRefreshToken(refreshToken)) {
             Claims claims = parseClaims(refreshToken, refreshTokenKey);
-            String uuid = claims.get("user_id").toString();
+            String uuid = claims.get(USERID).toString();
 
             // Redis에서 사용자 데이터 가져오기
             Map<String, Object> userData = redisService.getUser(uuid);
@@ -104,7 +106,7 @@ public class JwtTokenProvider {
 
             String loginId = (String) userData.get("loginId");
             String role = (String) userData.get("role");
-            Long userId = ((Number) userData.get("userId")).longValue();
+            Long userId = ((Number) userData.get(USERID)).longValue();
 
             log.debug("user 정보 확인 {}, {}, {}, {}", uuid, loginId, role, userId);
 
@@ -151,7 +153,7 @@ public class JwtTokenProvider {
             log.debug("JWT Token 정보가 비어있습니다.", e);
         } catch (io.jsonwebtoken.security.SignatureException e) {
             log.debug("JWT 서명이 일치하지 않습니다.", e);
-            throw new RuntimeException("JWT 서명이 일치하지 않습니다.");
+             throw new RuntimeException("JWT 서명이 일치하지 않습니다.");
         } catch (RuntimeException e) {
             log.debug("RuntimeException {}", e.getMessage());
         }
@@ -178,7 +180,7 @@ public class JwtTokenProvider {
      */
     public Map<String, Object> getUserInfoFromToken(String token) {
         Claims claims = parseClaims(token, tokenKey);
-        String uuid = claims.get("user_id", String.class);
+        String uuid = claims.get(USERID, String.class);
         return getUserInfoFromUUID(uuid);
     }
 
@@ -187,7 +189,7 @@ public class JwtTokenProvider {
      */
     public String getUUIDFromAccessToken(String token) {
         Claims claims = parseClaims(token, tokenKey);
-        return claims.get("user_id", String.class);
+        return claims.get(USERID, String.class);
     }
 
     /**
@@ -195,7 +197,7 @@ public class JwtTokenProvider {
      */
     public String getUUIDFromRefreshToken(String refreshToken) {
         Claims claims = parseClaims(refreshToken, refreshTokenKey);
-        return claims.get("user_id", String.class);
+        return claims.get(USERID, String.class);
     }
 
     /**
