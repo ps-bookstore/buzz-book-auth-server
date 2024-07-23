@@ -19,29 +19,28 @@ import store.buzzbook.authserver.jwt.JwtTokenProvider;
 @EnableWebSecurity
 public class SecurityConfig {
 
-	@Bean
-	public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtTokenProvider jwtTokenProvider) throws
-		Exception {
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtTokenProvider jwtTokenProvider) throws
+            Exception {
 
-		// csrf disable
-		http.csrf(AbstractHttpConfigurer::disable);
+        // csrf disable
+        http.csrf(AbstractHttpConfigurer::disable);
 
-		// Form 로그인 방식 disable
-		http.formLogin(AbstractHttpConfigurer::disable);
+        // Form 로그인 방식 disable
+        http.formLogin(AbstractHttpConfigurer::disable);
 
-		// http basic 인증방식 disable
-		http.httpBasic(AbstractHttpConfigurer::disable);
+        // http basic 인증방식 disable
+        http.httpBasic(AbstractHttpConfigurer::disable);
 
-		//경로 별 인가 작업
-		http.authorizeHttpRequests(auth -> auth
-			.requestMatchers("/", "/api/auth/**", "/redis/**").permitAll()
-			.anyRequest().permitAll()
-		);
+        //경로 별 인가 작업
+        http.authorizeHttpRequests(auth -> auth
+                .anyRequest().permitAll()
+        );
 
-		// 세션 설정 (세션이 아닌 jwt 토큰을 사용할거기 때문에 STATELESS 설정 필수)
-		http.sessionManagement(session -> session
-			.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+        // 세션 설정 (세션이 아닌 jwt 토큰을 사용할거기 때문에 STATELESS 설정 필수)
+        http.sessionManagement(session -> session
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
-		return http.build();
-	}
+        return http.build();
+    }
 }

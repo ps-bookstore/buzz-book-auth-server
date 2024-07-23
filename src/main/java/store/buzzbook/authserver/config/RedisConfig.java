@@ -55,7 +55,7 @@ public class RedisConfig {
         return new LettuceConnectionFactory(redisStandaloneConfiguration);
     }
 
-    private String fetchSecret(RestTemplate restTemplate, String secretKey) {
+    protected String fetchSecret(RestTemplate restTemplate, String secretKey) {
         SecretResponse response = restTemplate.getForObject(
                 String.format(KEY_MANAGER_URL_PATTERN, appKey, secretKey), SecretResponse.class);
         return Objects.requireNonNull(response).getBody().getSecret();
@@ -69,7 +69,7 @@ public class RedisConfig {
         return redisTemplate;
     }
 
-    private void setSerializers(RedisTemplate<String, Object> redisTemplate) {
+    public void setSerializers(RedisTemplate<String, Object> redisTemplate) {
         redisTemplate.setHashKeySerializer(new StringRedisSerializer());
         redisTemplate.setHashValueSerializer(new GenericJackson2JsonRedisSerializer());
         redisTemplate.setKeySerializer(new StringRedisSerializer());
