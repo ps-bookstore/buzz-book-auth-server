@@ -31,6 +31,8 @@ public class JwtTokenProvider {
     private final RedisService redisService;
 
     private static final String USERID = "user_id";
+    private static final String ROLE = "role";
+    private static final String LOGINID = "loginId";
 
     public JwtTokenProvider(@Value("${jwt.secret}") String tokenKey,
                             @Value("${jwt.refresh}") String refreshTokenKey,
@@ -77,8 +79,8 @@ public class JwtTokenProvider {
         String role = authDTO.getRole();
         String loginId = authDTO.getLoginId();
         Map<String, Object> userData = new HashMap<>();
-        userData.put("loginId", loginId);
-        userData.put("role", role);
+        userData.put(LOGINID, loginId);
+        userData.put(ROLE, role);
         userData.put(USERID, userId);
         redisService.saveUser(uuid.toString(), userData);
 
@@ -101,11 +103,22 @@ public class JwtTokenProvider {
 
             // Redis에서 사용자 데이터 가져오기
             Map<String, Object> userData = redisService.getUser(uuid);
+            if (userData == null) {
+                log.error("User data not found for UUID: {}", uuid);
+                throw new IllegalStateException("User data not found");
+            }
+
+            // 필요한 키들이 존재하는지 확인
+            if (!userData.containsKey(LOGINID) || !userData.containsKey(ROLE) || !userData.containsKey(USERID)) {
+                log.error("Incomplete user data: {}", userData);
+                throw new IllegalStateException("Incomplete user data");
+            }
+
             // 재발급 하기 때문에 이전 정보 삭제 return generateToken(authDTO);  부분에서 레디스 저장 다시 됨
             redisService.removeUser(uuid);
 
-            String loginId = (String) userData.get("loginId");
-            String role = (String) userData.get("role");
+            String loginId = (String) userData.get(LOGINID);
+            String role = (String) userData.get(ROLE);
             Long userId = ((Number) userData.get(USERID)).longValue();
 
             log.debug("user 정보 확인 {}, {}, {}, {}", uuid, loginId, role, userId);

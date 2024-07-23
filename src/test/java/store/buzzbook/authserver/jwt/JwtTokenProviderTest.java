@@ -85,7 +85,7 @@ class JwtTokenProviderTest {
         Map<String, Object> userData = new HashMap<>();
         userData.put("loginId", authDTO.getLoginId());
         userData.put("role", authDTO.getRole());
-        userData.put("userId", authDTO.getUserId());
+        userData.put("user_id", authDTO.getUserId());
         when(redisService.getUser(anyString())).thenReturn(userData);
         doNothing().when(redisService).removeUser(anyString());
 
@@ -98,6 +98,7 @@ class JwtTokenProviderTest {
         boolean isValid = jwtTokenProvider.validateToken(newJwtResponse.getAccessToken());
         assertThat(isValid).isTrue();
     }
+
 
     @Test
     void refreshAccessTokenWithInvalidTokenTest() {
