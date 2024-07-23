@@ -85,7 +85,7 @@ class JwtTokenProviderTest {
         Map<String, Object> userData = new HashMap<>();
         userData.put("loginId", authDTO.getLoginId());
         userData.put("role", authDTO.getRole());
-        userData.put("user_id", authDTO.getUserId());
+        userData.put("userId", authDTO.getUserId());
         when(redisService.getUser(anyString())).thenReturn(userData);
         doNothing().when(redisService).removeUser(anyString());
 
