@@ -30,6 +30,9 @@ public class AuthController {
     private static final String TOKEN_FORMAT = "Bearer %s";
     private static final String TOKEN_HEADER = "Authorization";
     private static final String REFRESH_HEADER = "Refresh-Token";
+    private static final String MESSAGE_KEY = "message";
+    private static final String ERROR_KEY = "error";
+    private static final String LOGIN_AGAIN_MESSAGE = "다시 로그인해주세요.";
 
     private final JwtTokenProvider jwtTokenProvider;
     private final RedisService redisService;
@@ -85,7 +88,7 @@ public class AuthController {
         try {
             if (isTokenPresentAndValid(refreshToken)) {
                 Map<String, Object> result = new HashMap<>();
-                result.put("message", "다시 로그인해주세요.");
+                result.put(MESSAGE_KEY, LOGIN_AGAIN_MESSAGE);
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(result);
             }
             refreshToken = extractToken(refreshToken);
@@ -102,7 +105,7 @@ public class AuthController {
                     return ResponseEntity.ok().headers(headers).body(userInfo);
                 } else {
                     Map<String, Object> result = new HashMap<>();
-                    result.put("message", "다시 로그인해주세요.");
+                    result.put(MESSAGE_KEY, LOGIN_AGAIN_MESSAGE);
                     return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(result);
                 }
             } else {
@@ -112,8 +115,8 @@ public class AuthController {
             }
         } catch (Exception e) {
             Map<String, Object> result = new HashMap<>();
-            result.put("message", "다시 로그인해주세요.");
-            result.put("error", e.getMessage());
+            result.put(MESSAGE_KEY, LOGIN_AGAIN_MESSAGE);
+            result.put(ERROR_KEY, e.getMessage());
             log.debug("error {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(result);
         }

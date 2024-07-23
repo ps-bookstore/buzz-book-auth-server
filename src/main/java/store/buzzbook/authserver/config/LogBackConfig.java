@@ -106,10 +106,10 @@ public class LogBackConfig {
 	}
 
 	private LogNCrashAppender getLogNCrashAppender() {
-		LogNCrashAppender logNCrashAppender = new LogNCrashAppender(version, host, platform, logVersion, logSource,
+		LogNCrashAppender appender = new LogNCrashAppender(version, host, platform, logVersion, logSource,
 			logType, appKey, logNCrashAdapter);
-		logNCrashAppender.start();
-		return logNCrashAppender;
+		appender.start();
+		return appender;
 	}
 
 	// 콘솔 로그 어펜더 생성
