@@ -30,7 +30,7 @@ public class JwtTokenProvider {
     private final Key refreshTokenKey;
     private final RedisService redisService;
 
-    private static final String USERID = "user_id";
+    private static final String USERID = "userId";
     private static final String ROLE = "role";
     private static final String LOGINID = "loginId";
 
