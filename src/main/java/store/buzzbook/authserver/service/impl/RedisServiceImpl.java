@@ -31,7 +31,7 @@ public class RedisServiceImpl implements RedisService {
 
 
 	@PostConstruct
-	private void init() {
+    void init() {
 		this.hashOperations = redisTemplate.opsForHash();
 	}
 
