@@ -25,99 +25,89 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 @RequiredArgsConstructor
 public class RedisServiceImpl implements RedisService {
-	private final RedisTemplate<String, Object> redisTemplate;
-	private HashOperations<String, String, Object> hashOperations;
-	private final DoorayClient doorayClient;
+    private final RedisTemplate<String, Object> redisTemplate;
+    private HashOperations<String, String, Object> hashOperations;
+    private final DoorayClient doorayClient;
 
 
-	@PostConstruct
-	private void init() {
-		this.hashOperations = redisTemplate.opsForHash();
-	}
+    @PostConstruct
+    void init() {
+        this.hashOperations = redisTemplate.opsForHash();
+    }
 
-	public void setKey(String key, String value) {
-		ValueOperations<String, Object> valueOperations = redisTemplate.opsForValue();
-		valueOperations.set(key, value);
-	}
+    @Override
+    public void saveUser(String userId, Map<String, Object> data) {
+        hashOperations.putAll(userId, data);
 
-	public String getKey(String key) {
-		ValueOperations<String, Object> valueOperations = redisTemplate.opsForValue();
-		return (String)valueOperations.get(key);
-	}
+        long userTTL = 7;
 
-	@Override
-	public void saveUser(String userId, Map<String, Object> data) {
-		hashOperations.putAll(userId, data);
+        redisTemplate.expire(userId, userTTL, TimeUnit.DAYS);
+    }
 
-		long userTTL = 7;
+    @Override
+    public Map<String, Object> getUser(String userId) {
+        return hashOperations.entries(userId);
+    }
 
-		redisTemplate.expire(userId, userTTL, TimeUnit.DAYS);
-	}
+    @Override
+    public void removeUser(String uuid) {
+        try {
+            redisTemplate.delete(uuid);
+        } catch (Exception e) {
+            log.error("레디스에서 유저 정보 삭제 실패", e);
+        }
 
-	@Override
-	public Map<String, Object> getUser(String userId) {
-		return hashOperations.entries(userId);
-	}
+    }
 
-	@Override
-	public void removeUser(String uuid) {
-		try {
-			redisTemplate.delete(uuid);
-		} catch (Exception e) {
-			log.error("레디스에서 유저 정보 삭제 실패", e);
-		}
+    @Override
+    public String createDormantToken(String loginId) {
+        UUID uuid = UUID.randomUUID();
+        String code = AuthCodeGenerator.generate();
 
-	}
+        String hashKey = String.format("%s%s", DORMANT_HASH_PREFIX, uuid);
+        redisTemplate.opsForHash().put(hashKey, DORMANT_LOGIN_ID_KEY, loginId);
+        redisTemplate.opsForHash().put(hashKey, DORMANT_CODE_KEY, code);
+        redisTemplate.expire(hashKey, DEFAULT_EXPIRATION, TimeUnit.SECONDS);
 
-	@Override
-	public String createDormantToken(String loginId) {
-		UUID uuid = UUID.randomUUID();
-		String code = AuthCodeGenerator.generate();
+        DoorayMessagePayload messagePayload = DoorayMessagePayload.builder()
+                .text(code)
+                .botName(AUTH_BOT_NAME)
+                .botIconImage("/static/images/buzz bee.png")
+                .build();
 
-		String hashKey = String.format("%s%s",DORMANT_HASH_PREFIX, uuid);
-		redisTemplate.opsForHash().put(hashKey, DORMANT_LOGIN_ID_KEY, loginId);
-		redisTemplate.opsForHash().put(hashKey, DORMANT_CODE_KEY, code);
-		redisTemplate.expire(hashKey,DEFAULT_EXPIRATION,TimeUnit.SECONDS);
+        ResponseEntity<String> responseEntity = doorayClient.sendMessage(messagePayload);
 
-		DoorayMessagePayload messagePayload = DoorayMessagePayload.builder()
-			.text(code)
-			.botName(AUTH_BOT_NAME)
-			.botIconImage("/static/images/buzz bee.png")
-			.build();
+        if (responseEntity.getStatusCode().isError()) {
+            throw new DoorayException();
+        }
 
-		ResponseEntity<String> responseEntity = doorayClient.sendMessage(messagePayload);
+        return hashKey;
+    }
 
-		if (responseEntity.getStatusCode().isError()) {
-			throw new DoorayException();
-		}
+    @Override
+    public boolean isDormantToken(String token) {
+        return redisTemplate.opsForHash().hasKey(token, DORMANT_CODE_KEY) && redisTemplate.opsForHash().hasKey(token, DORMANT_LOGIN_ID_KEY);
+    }
 
-		return hashKey;
-	}
+    @Override
+    public String checkDormantToken(String token, String code) {
+        String expectCode = (String) redisTemplate.opsForHash().get(token, DORMANT_CODE_KEY);
 
-	@Override
-	public boolean isDormantToken(String token) {
-		return redisTemplate.opsForHash().hasKey(token, DORMANT_CODE_KEY) && redisTemplate.opsForHash().hasKey(token, DORMANT_LOGIN_ID_KEY);
-	}
+        if (!Objects.requireNonNull(expectCode).equals(code)) {
+            log.debug("코드 인증에 실패했습니다.");
+            throw new ActivateFailException();
+        }
 
-	@Override
-	public String checkDormantToken(String token, String code) {
-		String expectCode = (String)redisTemplate.opsForHash().get(token, DORMANT_CODE_KEY);
+        String loginId = (String) redisTemplate.opsForHash().get(token, DORMANT_LOGIN_ID_KEY);
 
-		if (!Objects.requireNonNull(expectCode).equals(code)) {
-			log.debug("코드 인증에 실패했습니다.");
-			throw new ActivateFailException();
-		}
+        if (Objects.isNull(loginId)) {
+            log.debug("로그인 아이디가 발견되지 않았습니다.");
+            throw new ActivateFailException("이미 인증 되었거나 타임아웃이 발생했습니다.");
+        }
 
-		String loginId = (String)redisTemplate.opsForHash().get(token, DORMANT_LOGIN_ID_KEY);
+        redisTemplate.delete(token);
 
-		if (Objects.isNull(loginId)) {
-			log.debug("로그인 아이디가 발견되지 않았습니다.");
-			throw new ActivateFailException("이미 인증 되었거나 타임아웃이 발생했습니다.");
-		}
-
-		redisTemplate.delete(token);
-
-		return loginId;
-	}
+        return loginId;
+    }
 
 }
