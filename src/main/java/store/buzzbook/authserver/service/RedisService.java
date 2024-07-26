@@ -10,9 +10,6 @@ public interface RedisService {
 	Long DEFAULT_EXPIRATION = 180L;
 	String AUTH_BOT_NAME = "Buzz-Bee";
 
-
-	void setKey(String key, String value);
-	String getKey(String key);
 	void saveUser(String userId, Map<String, Object> data);
 	Map<String, Object> getUser(String userId);
 	void removeUser(String uuid);
