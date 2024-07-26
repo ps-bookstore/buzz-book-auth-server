@@ -9,7 +9,9 @@ import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 
+import org.springframework.http.ResponseEntity;
 import store.buzzbook.authserver.client.DoorayClient;
+import store.buzzbook.authserver.dto.DoorayMessagePayload;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -45,19 +47,6 @@ class RedisServiceImplTest {
     }
 
     @Test
-    void testSetKey() {
-        redisService.setKey("testKey", "testValue");
-        verify(valueOperations).set("testKey", "testValue");
-    }
-
-    @Test
-    void testGetKey() {
-        when(valueOperations.get("testKey")).thenReturn("testValue");
-        String value = redisService.getKey("testKey");
-        assertEquals("testValue", value);
-    }
-
-    @Test
     void testSaveUser() {
         Map<String, Object> data = new HashMap<>();
         UUID uuid = UUID.randomUUID();
@@ -83,6 +72,17 @@ class RedisServiceImplTest {
     void testRemoveUser() {
         redisService.removeUser("userId");
         verify(redisTemplate).delete("userId");
+    }
+
+    @Test
+    void testCreateDormantToken() {
+        String loginId = "12345";
+
+        when(doorayClient.sendMessage(any(DoorayMessagePayload.class))).thenReturn(ResponseEntity.ok("Success"));
+
+        String hashKey = redisService.createDormantToken(loginId);
+
+        assertNotNull(hashKey);
     }
 
 }
