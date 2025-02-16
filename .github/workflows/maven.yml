@@ -40,5 +40,5 @@ jobs:
           port: ${{ secrets.SERVER_PORT }}
           script_stop: true
           script: |
-            chmod 755 ~/auth/target/auth-0.0.1-SNAPSHOT.jar
+            chmod 755 ~/auth/target/buzz-book-auth-0.0.1-SNAPSHOT.jar
             ./auth/deploy.sh
