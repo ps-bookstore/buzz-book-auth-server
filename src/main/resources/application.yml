@@ -3,10 +3,9 @@ spring:
     name: auth-api
   data:
     redis:
-      host: 133.186.241.167
+      host: 127.0.0.1
       port: 6379
-      password: '*N2vya7H@muDTwdNMR!'
-      database: 7
+      database: 1
 
 server:
   port: 8100
@@ -43,24 +42,10 @@ management:
 eureka:
   instance:
     instance-id: auth-api
-    hostname: eureka-server
+    hostname: buzz-book.shop
     prefer-ip-address: true
   client:
     fetch-registry: true
     register-with-eureka: true
     service-url:
-      defaultZone: http://admin:1234@eureka-server:8761/eureka
-
-logncrash:
-  config:
-    file-path: logs
-    file-name: auth-log
-  app-key: Xyx7DoyszcG66ULx
-  url: https://api-logncrash.cloud.toast.com
-  version: 1.0.0
-  host: aa-auth-api
-  platform: aa-auth-api
-  log:
-    version: v2
-    source: aa
-    type: aa
+      defaultZone: http://admin:1234@buzz-book.shop:8761/eureka
