@@ -42,10 +42,10 @@ management:
 eureka:
   instance:
     instance-id: auth-api
-    hostname: buzz-book.shop
+    hostname: eureka-server
     prefer-ip-address: true
   client:
     fetch-registry: true
     register-with-eureka: true
     service-url:
-      defaultZone: http://admin:1234@buzz-book.shop:8761/eureka
+      defaultZone: http://admin:1234@eureka-server:8761/eureka
