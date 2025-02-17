@@ -49,3 +49,4 @@ eureka:
     register-with-eureka: true
     service-url:
       defaultZone: http://admin:1234@localhost:8761/eureka
+
